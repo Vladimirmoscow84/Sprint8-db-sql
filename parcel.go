@@ -39,7 +39,7 @@ func (s ParcelStore) Get(number int) (Parcel, error) {
 
 	err := row.Scan(&p.Number, &p.Client, &p.Status, &p.Address, &p.CreatedAt)
 	if err != nil {
-		return p, err
+		return Parcel{}, err
 	}
 	return p, nil
 }
@@ -66,8 +66,11 @@ func (s ParcelStore) GetByClient(client int) ([]Parcel, error) {
 		if err != nil {
 			return nil, err
 		}
-		// добавляем в пустрой слайс заполненные структуры по порядку чтения из БД
+		// добавляем в слайс заполненные структуры по порядку чтения из БД
 		res = append(res, p)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return res, nil
@@ -112,9 +115,7 @@ func (s ParcelStore) Delete(number int) error {
 	if err != nil {
 		return err
 	}
-	// if status != ParcelStatusRegistered {
-	// 	return errors.New("Заказ не зарегистрирован")
-	// }
+
 	if status == ParcelStatusRegistered {
 		_, err := s.db.Exec("DELETE FROM parcel WHERE number = :number", sql.Named("number", number))
 		if err != nil {
